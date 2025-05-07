@@ -29,8 +29,6 @@ export default function Inventory() {
       const response = await fetch('http://192.168.137.21:5000/getProductInventory');
       const data = await response.json();
 
-      console.log("Received data:", data);
-
       if (Array.isArray(data)) {
         const inventoryData = data.map(item => ({
           product: item.product || 'Unknown Product',
@@ -72,7 +70,6 @@ export default function Inventory() {
   }
 
   const chartData = values;
-  
 
   const getBarColors = (index) => {
     const colors = ['#FF6B6B', '#4ECDC4', '#3A86FF', '#FFD166', '#8338EC', '#06D6A0', '#EF476F', '#00BFFF', '#FF6347', '#FFD700'];
@@ -99,75 +96,91 @@ export default function Inventory() {
 
   const uniqueCategories = ['All', ...new Set(submittedData.map(item => item.category))];
 
+  const getCurrentDate = () => {
+    const today = new Date();
+    return new Intl.DateTimeFormat('en-GB', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+    }).format(today);
+  };
+
+  const isLowStock = (qty) => qty <= 20;
+
   return (
     <ImageBackground
-      source={require("../assets/background2.png")} // Update path if needed
+      source={require("../assets/background2.png")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
       <ScrollView
-  contentContainerStyle={styles.container}
-  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
->
-  <Text style={styles.title}>📊 Inventory Quantity Overview</Text>
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {/* 📅 Date in Decorative Banner */}
+        <Text style={styles.dateText}> {getCurrentDate()}</Text>
 
-  <View style={styles.pickerContainer}>
-    <Picker
-      selectedValue={selectedCategory}
-      style={styles.picker}
-      onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-    >
-      {uniqueCategories.map((category, index) => (
-        <Picker.Item key={index} label={category} value={category} />
-      ))}
-    </Picker>
-  </View>
+        <Text style={styles.title}>📊 Inventory Quantity Overview</Text>
 
-  {/* 📊 BarChart section */}
-  {labels.length > 0 ? (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
-      <BarChart
-        data={{
-          labels: labels,
-          datasets: [
-            {
-              data: chartData,
-              colors: chartData.map((_, i) => () => getBarColors(i)),
-            }
-          ],
-        }}
-        width={Math.max(screenWidth, labels.length * 90)}
-        height={280}
-        fromZero
-        showValuesOnTopOfBars
-        withCustomBarColorFromData
-        flatColor={false}
-        verticalLabelRotation={0}
-        chartConfig={chartConfig}
-        style={styles.chart}
-        barRadius={6}
-      />
-    </ScrollView>
-  ) : (
-    <Text style={styles.noData}>No inventory data available.</Text>
-  )}
-
-  {/* 🧾 Cards */}
-  <View style={styles.cardContainer}>
-    {filteredData.map((item, index) => {
-      const totalPrice = item.quantity * item.unitPrice;
-      return (
-        <View key={index} style={[styles.card, { borderColor: getBarColors(index), borderWidth: 2 }]}>
-          <Text style={styles.cardTitle}>{item.product}</Text>
-          <Text style={styles.cardText}>Category: {item.category}</Text>
-          <Text style={styles.cardText}>Quantity: {item.quantity}</Text>
-          <Text style={styles.cardText}>Total Price: ₹{totalPrice.toFixed(2)}</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedCategory}
+            style={styles.picker}
+            onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+          >
+            {uniqueCategories.map((category, index) => (
+              <Picker.Item key={index} label={category} value={category} />
+            ))}
+          </Picker>
         </View>
-      );
-    })}
-  </View>
-</ScrollView>
 
+        {/* 📊 BarChart section */}
+        {labels.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+            <BarChart
+              data={{
+                labels: labels,
+                datasets: [
+                  {
+                    data: chartData,
+                    colors: chartData.map((_, i) => () => getBarColors(i)),
+                  }
+                ],
+              }}
+              width={Math.max(screenWidth, labels.length * 90)}
+              height={280}
+              fromZero
+              showValuesOnTopOfBars
+              withCustomBarColorFromData
+              flatColor={false}
+              verticalLabelRotation={0}
+              chartConfig={chartConfig}
+              style={styles.chart}
+              barRadius={6}
+            />
+          </ScrollView>
+        ) : (
+          <Text style={styles.noData}>No inventory data available.</Text>
+        )}
+
+        {/* 🧾 Cards */}
+        <View style={styles.cardContainer}>
+          {filteredData.map((item, index) => {
+            const totalPrice = item.quantity * item.unitPrice;
+            return (
+              <View key={index} style={[styles.card, { borderColor: getBarColors(index), borderWidth: 2 }]}>
+                <Text style={styles.cardTitle}>{item.product}</Text>
+                <Text style={styles.cardText}>Category: {item.category}</Text>
+                <Text style={styles.cardText}>
+                  Quantity: {item.quantity} {isLowStock(item.quantity) && <Text style={styles.warning}>⚠️</Text>}
+                </Text>
+                <Text style={styles.cardText}>Total Price: ₹{totalPrice.toFixed(2)}</Text>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
     </ImageBackground>
   );
 }
@@ -182,7 +195,20 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     paddingVertical: 20,
-    backgroundColor: 'rgba(255,255,255,0.3)', // Optional dim background
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    backgroundColor: '#4B86B2', // Background color for the date banner
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 15,
+    overflow: 'hidden',
+    marginBottom: 15,
+    textAlign: 'center',
+    marginTop: 10,
   },
   title: {
     fontSize: 22,
@@ -206,10 +232,9 @@ const styles = StyleSheet.create({
   chart: {
     marginVertical: 40,
     borderRadius: 29,
-    backgroundColor: 'transparent', // removes card look
-    elevation: 0, // removes shadow
+    backgroundColor: 'transparent',
+    elevation: 0,
   },
-  
   noData: {
     fontSize: 16,
     color: '#888',
@@ -229,12 +254,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 10,
     backgroundColor: '#ffffff',
-    borderWidth: 2, // Added
-    borderColor: '#ccc', // default border color, overridden dynamically
+    borderWidth: 2,
+    borderColor: '#ccc',
     elevation: 5,
     marginHorizontal: '1%',
   },
-  
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -244,5 +268,10 @@ const styles = StyleSheet.create({
   cardText: {
     fontSize: 14,
     color: '#333',
+  },
+  warning: {
+    fontSize: 16,
+    color: 'red',
+    marginLeft: 6,
   },
 });
