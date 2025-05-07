@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "carefree-green-soylent",
+    "slug": "snack-d8a1cca2-f9ac-4fb9-80d7-91cafca2d3a8",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.bejjipuramthanooj.snackd8a1cca2f9ac4fb980d791cafca2d3a8"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "31cd0df1-ed3d-48dd-b96e-fcf53d3a49a5"
+      }
+    }
+  }
+}
